@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Login – Temple</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  body { background:linear-gradient(135deg,var(--crimson-dark),#1a0505); min-height:100vh; display:flex; flex-direction:column; }
+  .login-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 24px; }
+  .login-box {
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(200,146,42,0.4);
+    border-radius:14px; padding:44px 36px;
+    width:100%; max-width:420px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    backdrop-filter:blur(10px);
+  }
+  .login-box h1 { font-family:'Cinzel Decorative',cursive; color:var(--gold-light); font-size:1.4rem; text-align:center; margin-bottom:6px; }
+  .login-box p  { color:#c8a878; text-align:center; font-size:0.9rem; margin-bottom:28px; }
+  .login-box .form-group label { color:var(--gold-light); }
+  .login-box input {
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(200,146,42,0.3);
+    color:#fff; width:100%;
+  }
+  .login-box input::placeholder { color:#888; }
+  .login-box input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,146,42,0.2); }
+  .err { color:#ff8080; font-size:0.85rem; text-align:center; margin-top:10px; display:none; }
+  .creds-hint { margin-top:20px; padding:14px; background:rgba(200,146,42,0.08); border:1px solid rgba(200,146,42,0.2); border-radius:8px; }
+  .creds-hint p { color:#c8a060; font-size:0.78rem; text-align:center; line-height:1.7; }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-box">
+    <div style="text-align:center;font-size:2.5rem;margin-bottom:12px;">🔐</div>
+    <h1>Admin Login</h1>
+    <p>Sri Lakshmi Devi Temple Management</p>
+    <div class="form-group">
+      <label>USERNAME</label>
+      <input type="text" id="username" placeholder="Enter username" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="form-group">
+      <label>PASSWORD</label>
+      <input type="password" id="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="btn btn-gold" style="width:100%;padding:13px;font-size:0.9rem;margin-top:6px;" onclick="doLogin()">LOGIN TO DASHBOARD</button>
+    <p class="err" id="err-msg">❌ Invalid username or password.</p>
+    <div class="creds-hint">
+      <p><strong style="color:var(--gold-light);">Demo Credentials:</strong><br/>
+      admin / temple123 (Head Admin)<br/>
+      priest / priest123 (Priest)<br/>
+      manager / mgr123 (Manager)</p>
+    </div>
+    <div style="text-align:center;margin-top:18px;">
+      <a href="index.html" style="color:var(--gold);font-family:'Cinzel',serif;font-size:0.75rem;">← Back to Public Website</a>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="data.js"></script>
+<script>
+  // If already logged in, redirect
+  if(TempleDB.isLoggedIn()) window.location.href='admin-dashboard.html';
+
+  function doLogin() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    const admin = TempleDB.login(u, p);
+    if(admin) {
+      window.location.href = 'admin-dashboard.html';
+    } else {
+      document.getElementById('err-msg').style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>

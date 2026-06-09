@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sri Lakshmi Devi Temple</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪔 Sri Lakshmi Devi Temple <span>DIVINE POOJA BOOKING</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="active">🏠 Home</a>
+      <a href="services.html">🌸 Poojas</a>
+      <a href="booking.html">📋 Book Pooja</a>
+      <a href="about.html">🛕 Temple Info</a>
+      <a href="booking-status.html">🔍 My Booking</a>
+      <a href="admin-login.html" class="btn-admin">🔐 Admin</a>
+      <div id="lang-toggle-nav" style="margin-left:4px;"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-om">ॐ</div>
+  <h1 id="hero-name">Sri Lakshmi Devi Temple</h1>
+  <div class="hero-sub" id="hero-tagline">✦ DIVINE BLESSINGS AWAIT ✦</div>
+  <div class="hero-divider"></div>
+  <p>"May the divine grace of Goddess Lakshmi bring prosperity, peace, and joy into your life."</p>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+    <a href="booking.html" class="btn btn-gold">🙏 BOOK A POOJA</a>
+    <a href="services.html" class="btn btn-crimson">🌸 VIEW POOJAS</a>
+  </div>
+</section>
+
+<!-- ANNOUNCEMENTS -->
+<section style="background:linear-gradient(135deg,var(--crimson-dark),#4a0e0e);padding:50px 24px;">
+  <div class="container">
+    <div class="section-title">
+      <h2 style="color:var(--gold-light);">Temple Announcements</h2>
+      <div class="ornament" style="color:var(--gold);">✦ Latest News & Events ✦</div>
+    </div>
+    <div class="announce-ticker">
+      <span class="ticker-label">🔔 NOTICE</span>
+      <div class="ticker-wrap"><div class="ticker-content" id="ticker-text">Loading...</div></div>
+    </div>
+    <div id="announce-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;"></div>
+  </div>
+</section>
+
+<!-- QUICK SERVICES -->
+<section style="background:var(--cream);">
+  <div class="container">
+    <div class="section-title">
+      <h2>Our Pooja Services</h2>
+      <div class="ornament">✦ Sacred Offerings ✦</div>
+    </div>
+    <div id="services-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px;"></div>
+    <div style="text-align:center;margin-top:34px;">
+      <a href="services.html" class="btn btn-crimson">VIEW ALL POOJAS & PRICES</a>
+    </div>
+  </div>
+</section>
+
+<!-- QUICK INFO -->
+<section style="background:#fff;">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;">
+      <div>
+        <h2 style="font-family:'Cinzel Decorative',cursive;color:var(--crimson);font-size:1.5rem;margin-bottom:16px;">Visit the Temple</h2>
+        <ul style="list-style:none;" id="quick-info"></ul>
+        <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="about.html" class="btn btn-crimson btn-sm">LEARN MORE</a>
+          <a href="booking.html" class="btn btn-gold btn-sm">BOOK POOJA</a>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="border-radius:8px;border:2px solid var(--border);background:linear-gradient(135deg,#f5e6c8,#fdf0d8);height:130px;display:flex;align-items:center;justify-content:center;font-size:3rem;grid-column:span 2;">🛕</div>
+        <div style="border-radius:8px;border:2px solid var(--border);background:linear-gradient(135deg,#f5e6c8,#fdf0d8);height:110px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🪔</div>
+        <div style="border-radius:8px;border:2px solid var(--border);background:linear-gradient(135deg,#f5e6c8,#fdf0d8);height:110px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🌺</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <h3 id="footer-name">🪔 Sri Lakshmi Devi Temple</h3>
+  <p id="footer-info"></p>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="services.html">Poojas</a>
+    <a href="booking.html">Book Pooja</a>
+    <a href="about.html">About</a>
+    <a href="admin-login.html">Admin</a>
+  </div>
+  <div class="footer-copy">
+    © 2025 Sri Lakshmi Devi Temple. All Rights Reserved.<br/>
+    <span style="font-style:italic;color:#a07050;">॥ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः ॥</span>
+  </div>
+</footer>
+
+<div id="toast"></div>
+<script src="data.js"></script>
+<script>
+  function loadPage() {
+    const s = TempleDB.getSettings();
+    const poojas = TempleDB.getPoojas().filter(p=>p.active);
+    const ann = TempleDB.getAnnouncements().filter(a=>a.active);
+
+    // Hero
+    document.getElementById('hero-name').textContent = s.name;
+    document.getElementById('hero-tagline').textContent = '✦ ' + s.tagline.toUpperCase() + ' ✦';
+    document.title = s.name;
+
+    // Ticker
+    document.getElementById('ticker-text').textContent = ann.map(a=>'🪔 '+a.title+' – '+a.date).join('   |   ');
+
+    // Announcements
+    const ag = document.getElementById('announce-grid');
+    ag.innerHTML = ann.length ? ann.map(a=>`
+      <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(200,146,42,0.3);border-left:4px solid var(--gold);border-radius:8px;padding:18px;color:#f0d8b0;transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+        <h3 style="font-family:'Cinzel',serif;font-size:0.95rem;color:var(--gold-light);margin-bottom:6px;">${a.title}</h3>
+        <div style="font-size:0.78rem;color:#c8a060;margin-bottom:8px;font-family:'Cinzel',serif;">📅 ${a.date}</div>
+        <p style="font-size:0.92rem;line-height:1.6;">${a.body}</p>
+      </div>`).join('') : '<p style="color:#c8a878;text-align:center;grid-column:span 4;">No announcements at this time.</p>';
+
+    // Services (show first 4)
+    const sg = document.getElementById('services-grid');
+    sg.innerHTML = poojas.slice(0,4).map(p=>`
+      <div class="service-card">
+        <div class="service-icon">${p.icon}</div>
+        <h3>${p.name}</h3>
+        <p>${p.desc}</p>
+        <span class="service-price">₹${p.price.toLocaleString()}</span>
+        <span class="service-duration">⏱ ${p.duration}</span>
+      </div>`).join('');
+
+    // Quick info
+    document.getElementById('quick-info').innerHTML = `
+      <li style="padding:10px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;gap:10px;"><span>🕐</span> <span><strong>Timings:</strong> ${s.timings}</span></li>
+      <li style="padding:10px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;gap:10px;"><span>📍</span> <span><strong>Address:</strong> ${s.address}</span></li>
+      <li style="padding:10px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;gap:10px;"><span>📞</span> <span><strong>Phone:</strong> ${s.phone}</span></li>
+      <li style="padding:10px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;gap:10px;"><span>📧</span> <span><strong>Email:</strong> ${s.email}</span></li>
+      <li style="padding:10px 0;display:flex;align-items:center;gap:10px;"><span>👗</span> <span><strong>Dress Code:</strong> ${s.dresscode}</span></li>`;
+
+    // Footer
+    document.getElementById('footer-name').textContent = '🪔 ' + s.name;
+    document.getElementById('footer-info').innerHTML = `${s.address}<br/>📞 ${s.phone} | 📧 ${s.email}`;
+  }
+  loadPage();
+</script>
+</body>
+</html>

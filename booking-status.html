@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Check Booking Status</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .status-wrap { max-width:560px; margin:0 auto; }
+  .search-box { background:#fff; border:1px solid var(--border); border-radius:12px; padding:36px; box-shadow:0 8px 30px rgba(139,26,26,0.1); margin-bottom:28px; }
+  .search-box h2 { font-family:'Cinzel',serif; color:var(--crimson); font-size:1rem; letter-spacing:1px; margin-bottom:20px; text-align:center; }
+  .result-card { background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:0 8px 30px rgba(139,26,26,0.1); display:none; }
+  .result-header { padding:22px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .result-header.pending   { background:linear-gradient(135deg,#7a5c00,#a07800); }
+  .result-header.confirmed { background:linear-gradient(135deg,#1a5c1a,#2d8c2d); }
+  .result-header.rejected  { background:linear-gradient(135deg,#5c0f0f,#8b1a1a); }
+  .status-icon { font-size:2.8rem; }
+  .status-label { font-family:'Cinzel Decorative',cursive; font-size:1.2rem; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
+  .status-label span { display:block; font-family:'Cinzel',serif; font-size:0.72rem; letter-spacing:2px; color:rgba(255,255,255,0.75); margin-bottom:4px; }
+  .ref-badge { background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); border-radius:20px; padding:6px 18px; font-family:'Cinzel',serif; font-size:0.85rem; color:#fff; letter-spacing:1px; }
+  .result-body { padding:28px; }
+  .detail-row { display:flex; gap:14px; padding:11px 0; border-bottom:1px dashed var(--border); font-size:0.97rem; color:#333; align-items:flex-start; }
+  .detail-row:last-child { border-bottom:none; }
+  .detail-row .lbl { font-family:'Cinzel',serif; font-size:0.72rem; letter-spacing:1px; color:var(--crimson); min-width:130px; padding-top:2px; }
+  .detail-row .val { flex:1; line-height:1.5; }
+  .status-message { margin-top:20px; padding:16px 20px; border-radius:8px; font-size:0.95rem; line-height:1.7; text-align:center; }
+  .status-message.pending   { background:#fffbea; border:1px solid #d4a800; color:#7a5000; }
+  .status-message.confirmed { background:#f0fff0; border:1px solid #2d8c2d; color:#1a5c1a; }
+  .status-message.rejected  { background:#fff5f5; border:1px solid #c0392b; color:#8b1a1a; }
+  .reject-reason-box { background:#fff5f5; border:1px solid #e0a0a0; border-left:4px solid #c0392b; border-radius:8px; padding:14px 18px; margin-top:14px; display:none; }
+  .reject-reason-box p { color:#8b1a1a; font-size:0.92rem; line-height:1.6; }
+  .reject-reason-box strong { font-family:'Cinzel',serif; font-size:0.75rem; letter-spacing:1px; display:block; margin-bottom:6px; }
+  .not-found { background:#fff8f0; border:1px solid #e0a060; border-radius:10px; padding:28px; text-align:center; display:none; }
+  .not-found .icon { font-size:2.5rem; margin-bottom:10px; }
+  .not-found h3 { font-family:'Cinzel',serif; color:var(--crimson); margin-bottom:8px; }
+  .not-found p  { color:#666; font-size:0.95rem; }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪔 <span id="nav-temple-name">Sri Lakshmi Devi Temple</span> <span>DIVINE POOJA BOOKING</span></a>
+    <div class="nav-links">
+      <a href="index.html" id="nl-home">🏠 Home</a>
+      <a href="services.html" id="nl-poojas">🌸 Poojas</a>
+      <a href="booking.html" id="nl-book">📋 Book Pooja</a>
+      <a href="about.html" id="nl-temple">🛕 Temple Info</a>
+      <a href="booking-status.html" class="active" id="nl-mybooking">🔍 My Booking</a>
+      <a href="admin-login.html" class="btn-admin">🔐 Admin</a>
+    </div>
+    <div id="lang-toggle-nav"></div>
+  </div>
+</nav>
+
+<section class="hero" style="padding:50px 24px 40px;">
+  <div class="hero-om" style="font-size:3rem;">🔍</div>
+  <h1 id="h-title" style="font-size:clamp(1.3rem,3vw,2rem);">Check Booking Status</h1>
+  <div class="hero-sub" id="h-sub">✦ TRACK YOUR POOJA BOOKING ✦</div>
+  <div class="hero-divider"></div>
+  <p id="h-desc" style="font-size:1rem;">Enter your Booking Reference ID and registered phone number to check your booking status.</p>
+</section>
+
+<section style="background:var(--cream);">
+  <div class="container">
+    <div class="status-wrap">
+      <div class="search-box">
+        <h2 id="s-heading">🔖 ENTER YOUR BOOKING DETAILS</h2>
+        <div class="form-group">
+          <label id="lbl-ref">BOOKING REFERENCE ID *</label>
+          <input type="text" id="ref-input" placeholder="e.g. SLD0001" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')checkStatus()"/>
+        </div>
+        <div class="form-group">
+          <label id="lbl-phone">REGISTERED PHONE NUMBER *</label>
+          <input type="tel" id="phone-input" placeholder="+91 XXXXX XXXXX" onkeydown="if(event.key==='Enter')checkStatus()"/>
+        </div>
+        <button class="btn btn-crimson" style="width:100%;padding:13px;font-size:0.88rem;" id="btn-check" onclick="checkStatus()">🔍 CHECK MY BOOKING STATUS</button>
+        <p style="text-align:center;font-size:0.8rem;color:#888;margin-top:12px;font-style:italic;" id="ref-hint">Your Booking Reference ID was shown after submitting the booking form.</p>
+      </div>
+
+      <div class="not-found" id="not-found">
+        <div class="icon">❓</div>
+        <h3 id="nf-title">Booking Not Found</h3>
+        <p id="nf-desc">No booking found with this Reference ID and Phone Number. Please double-check your details or <a href="booking.html" style="color:var(--crimson);">make a new booking</a>.</p>
+      </div>
+
+      <div class="result-card" id="result-card">
+        <div class="result-header" id="result-header">
+          <div>
+            <span class="status-label">
+              <span id="res-status-label">BOOKING STATUS</span>
+              <span id="res-status-text">—</span>
+            </span>
+          </div>
+          <div class="status-icon" id="res-icon">—</div>
+          <div class="ref-badge" id="res-ref">—</div>
+        </div>
+        <div class="result-body">
+          <div class="detail-row"><span class="lbl" id="lbl-dname">DEVOTEE NAME</span><span class="val" id="res-name">—</span></div>
+          <div class="detail-row"><span class="lbl" id="lbl-dphone">PHONE</span><span class="val" id="res-phone">—</span></div>
+          <div class="detail-row"><span class="lbl" id="lbl-demail">EMAIL</span><span class="val" id="res-email">—</span></div>
+          <div class="detail-row"><span class="lbl" id="lbl-dpooja">POOJA</span><span class="val" id="res-pooja">—</span></div>
+          <div class="detail-row"><span class="lbl" id="lbl-ddate">DATE</span><span class="val" id="res-date">—</span></div>
+          <div class="detail-row"><span class="lbl" id="lbl-dtime">TIME</span><span class="val" id="res-time">—</span></div>
+          <div class="detail-row"><span class="lbl" id="lbl-dbooked">BOOKED ON</span><span class="val" id="res-createdat">—</span></div>
+
+          <!-- REJECTION REASON BOX -->
+          <div class="reject-reason-box" id="reject-reason-box">
+            <strong id="lbl-reason">❌ REASON FOR REJECTION:</strong>
+            <p id="res-reason">—</p>
+            <p style="margin-top:8px;font-size:0.85rem;color:#a06060;">Please <a href="booking.html" style="color:var(--crimson);font-weight:bold;">make a new booking</a> with a different date or time, or contact the temple directly.</p>
+          </div>
+
+          <div class="status-message" id="res-message"></div>
+
+          <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+            <a href="index.html" class="btn btn-crimson btn-sm" id="btn-back-home">🏠 Back to Home</a>
+            <a href="booking.html" class="btn btn-gold btn-sm" id="btn-new-booking">➕ New Booking</a>
+            <button class="btn btn-outline btn-sm" onclick="resetSearch()" id="btn-search-again">🔍 Search Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <h3 id="footer-name">🪔 Sri Lakshmi Devi Temple</h3>
+  <p id="footer-info"></p>
+  <div class="footer-links">
+    <a href="index.html" id="fl-home">Home</a>
+    <a href="services.html" id="fl-poojas">Poojas</a>
+    <a href="booking.html" id="fl-book">Book Pooja</a>
+    <a href="about.html" id="fl-about">About</a>
+    <a href="booking-status.html" id="fl-status">My Booking</a>
+  </div>
+  <div class="footer-copy">© 2025 <span id="footer-tname"></span>. <span id="footer-rights">All Rights Reserved.</span></div>
+</footer>
+
+<div id="toast"></div>
+<script src="data.js"></script>
+<script>
+  const s = TempleDB.getSettings();
+  document.title = t('status_title') + ' – ' + s.name;
+  document.getElementById('footer-name').textContent    = '🪔 ' + s.name;
+  document.getElementById('footer-tname').textContent   = s.name;
+  document.getElementById('footer-info').innerHTML      = s.address + '<br/>📞 ' + s.phone + ' | 📧 ' + s.email;
+  document.getElementById('nav-temple-name').textContent = s.name;
+  document.getElementById('lang-toggle-nav').innerHTML  = buildLangToggle();
+
+  // Apply translations
+  document.getElementById('h-title').textContent    = t('status_title');
+  document.getElementById('h-sub').textContent      = '✦ ' + t('status_sub').toUpperCase() + ' ✦';
+  document.getElementById('h-desc').textContent     = t('status_desc');
+  document.getElementById('lbl-ref').textContent    = t('lbl_ref');
+  document.getElementById('lbl-phone').textContent  = t('lbl_phone2');
+  document.getElementById('btn-check').textContent  = t('btn_check');
+  document.getElementById('footer-rights').textContent = t('footer_rights');
+
+  function checkStatus() {
+    const ref   = document.getElementById('ref-input').value.trim().toUpperCase();
+    const phone = document.getElementById('phone-input').value.trim();
+    if(!ref || !phone) { showToast('🙏 Please enter both fields.', false); return; }
+
+    const booking = TempleDB.getBookings().find(b =>
+      b.bookingRef.toUpperCase() === ref &&
+      b.phone.replace(/\s+/g,'') === phone.replace(/\s+/g,'')
+    );
+
+    document.getElementById('not-found').style.display   = 'none';
+    document.getElementById('result-card').style.display = 'none';
+
+    if(!booking) {
+      document.getElementById('not-found').style.display = 'block';
+      document.getElementById('nf-title').textContent = t('notfound_title');
+      document.getElementById('nf-desc').innerHTML    = t('notfound_desc') + ' <a href="booking.html" style="color:var(--crimson);">make a new booking</a>.';
+      return;
+    }
+
+    const status      = booking.status;
+    const statusLower = status.toLowerCase();
+    const icons       = { Pending:'⏳', Confirmed:'✅', Rejected:'❌' };
+    const statusText  = { Pending:t('status_pending'), Confirmed:t('status_confirmed'), Rejected:t('status_rejected') };
+    const messages    = {
+      Pending:   t('msg_pending'),
+      Confirmed: t('msg_confirmed'),
+      Rejected:  t('msg_rejected'),
+    };
+
+    document.getElementById('result-header').className        = 'result-header ' + statusLower;
+    document.getElementById('res-status-text').textContent    = statusText[status];
+    document.getElementById('res-icon').textContent           = icons[status];
+    document.getElementById('res-ref').textContent            = booking.bookingRef;
+    document.getElementById('res-name').textContent           = booking.name;
+    document.getElementById('res-phone').textContent          = booking.phone;
+    document.getElementById('res-email').textContent          = booking.email || '—';
+    document.getElementById('res-pooja').textContent          = booking.pooja;
+    document.getElementById('res-date').textContent           = booking.date;
+    document.getElementById('res-time').textContent           = booking.time;
+    document.getElementById('res-createdat').textContent      = new Date(booking.createdAt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+
+    // Show rejection reason if rejected
+    const reasonBox = document.getElementById('reject-reason-box');
+    if(status === 'Rejected' && booking.reason) {
+      reasonBox.style.display          = 'block';
+      document.getElementById('lbl-reason').textContent = t('reject_reason');
+      document.getElementById('res-reason').textContent = booking.reason;
+    } else {
+      reasonBox.style.display = 'none';
+    }
+
+    const msgEl       = document.getElementById('res-message');
+    msgEl.className   = 'status-message ' + statusLower;
+    msgEl.textContent = messages[status];
+
+    document.getElementById('result-card').style.display = 'block';
+    document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function resetSearch() {
+    document.getElementById('ref-input').value   = '';
+    document.getElementById('phone-input').value = '';
+    document.getElementById('result-card').style.display  = 'none';
+    document.getElementById('not-found').style.display    = 'none';
+    document.getElementById('ref-input').focus();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function showToast(msg, ok=true) {
+    const t2 = document.getElementById('toast');
+    t2.textContent = msg;
+    t2.className   = ok ? 'show green' : 'show';
+    setTimeout(() => t2.className = '', 3000);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pooja Services – Sri Lakshmi Devi Temple</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪔 Sri Lakshmi Devi Temple <span>DIVINE POOJA BOOKING</span></a>
+    <div class="nav-links">
+      <a href="index.html">🏠 Home</a>
+      <a href="services.html" class="active">🌸 Poojas</a>
+      <a href="booking.html">📋 Book Pooja</a>
+      <a href="about.html">🛕 Temple Info</a>
+      <a href="booking-status.html">🔍 My Booking</a>
+      <a href="admin-login.html" class="btn-admin">🔐 Admin</a>
+      <div id="lang-toggle-nav" style="margin-left:4px;"></div>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" style="padding:50px 24px 40px;">
+  <div class="hero-om" style="font-size:3rem;">🌸</div>
+  <h1 style="font-size:clamp(1.3rem,3vw,2.2rem);">Pooja Services & Pricing</h1>
+  <div class="hero-sub">✦ CHOOSE YOUR DIVINE OFFERING ✦</div>
+  <div class="hero-divider"></div>
+  <p style="font-size:1rem;">All poojas are performed by our experienced priests following traditional Vedic rituals.</p>
+</section>
+
+<section style="background:var(--cream);">
+  <div class="container">
+    <div id="services-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;"></div>
+    <div style="text-align:center;margin-top:40px;">
+      <a href="booking.html" class="btn btn-crimson">🙏 BOOK A POOJA NOW</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <h3 id="footer-name">🪔 Sri Lakshmi Devi Temple</h3>
+  <p id="footer-info"></p>
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="services.html">Poojas</a>
+    <a href="booking.html">Book Pooja</a><a href="about.html">About</a>
+  </div>
+  <div class="footer-copy">© 2025 Sri Lakshmi Devi Temple. All Rights Reserved.</div>
+</footer>
+<div id="toast"></div>
+<script src="data.js"></script>
+<script>
+  const s = TempleDB.getSettings();
+  const poojas = TempleDB.getPoojas().filter(p=>p.active);
+  document.title = 'Pooja Services – ' + s.name;
+  document.getElementById('footer-name').textContent = '🪔 ' + s.name;
+  document.getElementById('footer-info').innerHTML = s.address + '<br/>📞 ' + s.phone + ' | 📧 ' + s.email;
+  document.getElementById('services-grid').innerHTML = poojas.length
+    ? poojas.map(p=>`
+      <div class="service-card">
+        <div class="service-icon">${p.icon}</div>
+        <h3>${p.name}</h3>
+        <p>${p.desc}</p>
+        <span class="service-price">₹${p.price.toLocaleString()}</span>
+        <span class="service-duration">⏱ ${p.duration}</span>
+        <div style="margin-top:14px;"><a href="booking.html" class="btn btn-crimson btn-sm">BOOK NOW</a></div>
+      </div>`).join('')
+    : '<p style="text-align:center;color:#888;grid-column:span 4;">No pooja services available at this time.</p>';
+</script>
+</body>
+</html>
