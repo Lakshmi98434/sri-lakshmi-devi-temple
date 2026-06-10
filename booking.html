@@ -253,7 +253,24 @@
     document.body.appendChild(hiddenForm);
     hiddenForm.submit();
     document.body.removeChild(hiddenForm);
-
+fetch('https://script.google.com/macros/s/AKfycbyPMW8x2QhBpDFxcMnop2QqtsYGvCZVgLd-e_NUkM8ZFBbhDALE_-H68Ay9Kf0d9zaG/exec', {
+  method: 'POST',
+  body: JSON.stringify({
+    bookingRef: 'TEMP' + Date.now(),
+    name: name,
+    phone: phone,
+    email: email,
+    city: city,
+    pooja: pooja,
+    date: date,
+    time: time,
+    persons: persons,
+    notes: notes
+  })
+})
+.then(r => r.json())
+.then(data => console.log('Saved to Google Sheet', data))
+.catch(err => console.error(err));
     // Also save locally for booking-status page
     const b = TempleDB.addBooking({name,phone,email,city,pooja,date,time,persons,notes});
 
