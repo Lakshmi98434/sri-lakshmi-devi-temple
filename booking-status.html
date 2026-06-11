@@ -139,6 +139,7 @@
 <div id="toast"></div>
 <script src="data.js"></script>
 <script>
+  const SCRIPT_URL = https://script.google.com/macros/s/AKfycbyPMW8x2QhBpDFxcMnop2QqtsYGvCZVgLd-e_NUkM8ZFBbhDALE_-H68Ay9Kf0d9zaG/exec
   const s = TempleDB.getSettings();
   document.title = t('status_title') + ' – ' + s.name;
   document.getElementById('footer-name').textContent    = '🪔 ' + s.name;
@@ -156,12 +157,23 @@
   document.getElementById('btn-check').textContent  = t('btn_check');
   document.getElementById('footer-rights').textContent = t('footer_rights');
 
-  function checkStatus() {
+  async function checkStatus() {
     const ref   = document.getElementById('ref-input').value.trim().toUpperCase();
     const phone = document.getElementById('phone-input').value.trim();
     if(!ref || !phone) { showToast('🙏 Please enter both fields.', false); return; }
 
-    const booking = TempleDB.getBookings().find(b =>
+    // Try Google Sheet first, fallback to localStorage
+    let booking = null;
+    try {
+      if(SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL') {
+        const res  = await fetch(SCRIPT_URL + '?ref=' + encodeURIComponent(ref) + '&phone=' + encodeURIComponent(phone));
+        const data = await res.json();
+        if(data.success) booking = data;
+      }
+    } catch(e) { console.log('Sheet fetch failed, using local'); }
+
+    // Fallback to localStorage
+    if(!booking) booking = TempleDB.getBookings().find(b =>
       b.bookingRef.toUpperCase() === ref &&
       b.phone.replace(/\s+/g,'') === phone.replace(/\s+/g,'')
     );
