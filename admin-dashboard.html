@@ -356,21 +356,34 @@
           <td style="font-size:0.8rem;max-width:160px;color:#ffb0b0;">${x.reason||'—'}</td>
           <td style="white-space:nowrap;">
             ${x.status==='Pending'?`
-              <button class="btn btn-success btn-sm" onclick="approveBooking(${x.id})" style="margin-bottom:4px;">✅ Approve</button><br/>
+              <button class="btn btn-success btn-sm" onclick="approveBooking('${x.bookingRef}')" style="margin-bottom:4px;">✅ Approve</button><br/>
               <button class="btn btn-danger btn-sm"  onclick="openRejectModal(${x.id})">❌ Reject</button>`
             : x.status==='Confirmed'?
               `<button class="btn btn-danger btn-sm" onclick="openRejectModal(${x.id})">❌ Reject</button>`
-            : `<button class="btn btn-success btn-sm" onclick="approveBooking(${x.id})">✅ Approve</button>`}
+            : `<button class="btn btn-success btn-sm" onclick="approveBooking('${x.bookingRef}')">✅ Approve</button>`}
           </td>
         </tr>`).join('')
       : '<tr><td colspan="9" style="text-align:center;color:#666;padding:20px;">No bookings found.</td></tr>';
   }
 
-  function approveBooking(id) {
-    TempleDB.updateBookingStatus(id, 'Confirmed', '');
-    renderBookings(); renderDashboard();
-    toast('✅ Booking confirmed! Devotee can see this on the status page.');
-  }
+async function approveBooking(bookingRef) {
+
+const url =
+"https://script.google.com/macros/s/AKfycbyPMW8x2QhBpDFxcMnop2QqtsYGvCZVgLd-e_NUkM8ZFBbhDALE_-H68Ay9Kf0d9zaG/exec?action=updateStatus&bookingRef="
+
+encodeURIComponent(bookingRef)
+"&status=Confirmed";
+
+const res = await fetch(url);
+const data = await res.json();
+
+if(data.success){
+toast('✅ Booking confirmed!');
+location.reload();
+} else {
+toast('❌ Failed to update booking.', false);
+}
+}
 
   // ── REJECT MODAL ──
   let selectedChipText = '';
