@@ -340,45 +340,24 @@
   }
 
   // ── BOOKINGS ──
-async function renderBookings() {
+function renderBookings() {
+const filter = document.getElementById('filter-status')?.value||'';
+let b = [...TempleDB.getBookings()].reverse();
 
-const filter = document.getElementById('filter-status')?.value || '';
-
-const res = await fetch(
-'https://script.google.com/macros/s/AKfycbyPMW8x2QhBpDFxcMnop2QqtsYGvCZVgLd-e_NUkM8ZFBbhDALE_-H68Ay9Kf0d9zaG/exec?action=getBookings'
-);
-
-let b = await res.json();
-
-b.reverse();
-
-if(filter){
-b = b.filter(x => x.status === filter);
-}
+if(filter) b = b.filter(x=>x.status===filter);
 
 document.getElementById('bookings-body').innerHTML = b.length
-? b.map(x=><tr> <td style="color:var(--gold);white-space:nowrap;">${x.bookingRef}</td> <td>${x.name}<br/><span style="font-size:0.78rem;color:#a08060;">${x.phone}</span></td> <td>${x.phone}</td> <td style="white-space:nowrap;">${x.pooja.split('–')[0].trim()}</td> <td style="white-space:nowrap;">${new Date(x.date).toLocaleDateString()}</td> <td style="white-space:nowrap;">${x.time}</td> <td><span class="badge badge-${x.status.toLowerCase()}">${x.status}</span></td> <td>—</td> <td style="white-space:nowrap;"> ${x.status==='Pending' ? ✅ Approve : ''} </td> </tr>).join('')
+? b.map(x=><tr> <td style="color:var(--gold);white-space:nowrap;">${x.bookingRef}</td> <td>${x.name}<br/><span style="font-size:0.78rem;color:#a08060;">${x.phone}</span></td> <td>${x.phone}</td> <td style="white-space:nowrap;">${x.pooja.split('–')[0].trim()}</td> <td style="white-space:nowrap;">${x.date}</td> <td style="white-space:nowrap;">${x.time}</td> <td><span class="badge badge-${x.status.toLowerCase()}">${x.status}</span></td> <td style="font-size:0.8rem;max-width:160px;color:#ffb0b0;">${x.reason||'—'}</td> <td style="white-space:nowrap;"> ${x.status==='Pending'?
+✅ Approve
+❌ Reject : x.status==='Confirmed'? ❌ Reject :✅ Approve} </td> </tr>).join('')
 : 'No bookings found.';
 }
-async function approveBooking(bookingRef) {
-
-const url =
-"https://script.google.com/macros/s/AKfycbyPMW8x2QhBpDFxcMnop2QqtsYGvCZVgLd-e_NUkM8ZFBbhDALE_-H68Ay9Kf0d9zaG/exec?action=updateStatus&bookingRef="
-
-encodeURIComponent(bookingRef)
-"&status=Confirmed";
-
-const res = await fetch(url);
-const data = await res.json();
-
-if(data.success){
-toast('✅ Booking confirmed!');
-location.reload();
-} else {
-toast('❌ Failed to update booking.', false);
+function approveBooking(id) {
+TempleDB.updateBookingStatus(id, 'Confirmed', '');
+renderBookings();
+renderDashboard();
+toast('✅ Booking confirmed! Devotee can see this on the status page.');
 }
-}
-
   // ── REJECT MODAL ──
   let selectedChipText = '';
   function openRejectModal(id) {
