@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Dashboard – Temple</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  body { background:#0f0404; }
+  body::before { background-image:none; }
+  .admin-layout { display:flex; min-height:100vh; }
+  .sidebar {
+    width:230px; flex-shrink:0;
+    background:linear-gradient(180deg,#1a0505,#2d0808);
+    border-right:2px solid rgba(200,146,42,0.3);
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .sidebar-logo { padding:24px 18px 16px; border-bottom:1px solid rgba(200,146,42,0.2); text-align:center; }
+  .sidebar-logo h2 { font-family:'Cinzel Decorative',cursive; color:var(--gold-light); font-size:0.85rem; line-height:1.4; }
+  .sidebar-logo p  { color:#c8a060; font-size:0.72rem; margin-top:4px; }
+  .admin-info { padding:14px 18px; border-bottom:1px solid rgba(200,146,42,0.15); }
+  .admin-info p { color:#e8d0a8; font-size:0.82rem; }
+  .admin-info span { color:var(--gold); font-weight:bold; }
+  .nav-menu { flex:1; padding:12px 0; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding:11px 18px; cursor:pointer;
+    color:#c8a878; font-family:'Cinzel',serif;
+    font-size:0.75rem; letter-spacing:0.5px;
+    transition:all 0.2s; border-left:3px solid transparent;
+  }
+  .nav-item:hover { background:rgba(200,146,42,0.1); color:var(--gold-light); }
+  .nav-item.active { background:rgba(200,146,42,0.15); color:var(--gold-light); border-left-color:var(--gold); }
+  .nav-item .icon { font-size:1rem; width:20px; text-align:center; }
+  .sidebar-footer { padding:16px 18px; border-top:1px solid rgba(200,146,42,0.2); }
+  .sidebar-footer a { display:block; color:#c8a060; font-family:'Cinzel',serif; font-size:0.72rem; text-decoration:none; margin-bottom:8px; transition:color 0.2s; }
+  .sidebar-footer a:hover { color:var(--gold-light); }
+  .main { flex:1; overflow-y:auto; background:#150303; }
+  .topbar {
+    background:rgba(92,15,15,0.6); border-bottom:1px solid rgba(200,146,42,0.25);
+    padding:14px 28px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:10; backdrop-filter:blur(8px);
+  }
+  .topbar h1 { font-family:'Cinzel',serif; color:var(--gold-light); font-size:1rem; letter-spacing:1px; }
+  .page { display:none; padding:28px; }
+  .page.active { display:block; }
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:28px; }
+  .stat { background:rgba(255,255,255,0.05); border:1px solid rgba(200,146,42,0.2); border-radius:10px; padding:18px 16px; text-align:center; }
+  .stat .n { font-family:'Cinzel Decorative',cursive; font-size:2rem; color:var(--gold-light); display:block; }
+  .stat p { color:#c8a878; font-size:0.78rem; margin-top:4px; }
+  .section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+  .section-hdr h2 { font-family:'Cinzel',serif; color:var(--gold-light); font-size:1rem; letter-spacing:1px; }
+  .dark-card { background:rgba(255,255,255,0.04); border:1px solid rgba(200,146,42,0.2); border-radius:10px; overflow:hidden; margin-bottom:24px; }
+  .dark-table { width:100%; border-collapse:collapse; }
+  .dark-table th { background:rgba(200,146,42,0.15); color:var(--gold-light); font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:1px; padding:10px 14px; text-align:left; }
+  .dark-table td { padding:10px 14px; border-bottom:1px solid rgba(200,146,42,0.08); color:#e8d0a8; font-size:0.88rem; vertical-align:top; }
+  .dark-table tr:hover td { background:rgba(255,255,255,0.03); }
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center; }
+  .modal-bg.open { display:flex; }
+  .modal { background:#1a0505; border:1px solid var(--gold); border-radius:12px; padding:30px; width:90%; max-width:500px; max-height:88vh; overflow-y:auto; }
+  .modal h3 { font-family:'Cinzel',serif; color:var(--gold-light); margin-bottom:20px; font-size:1rem; }
+  .modal .form-group label { color:var(--gold-light); }
+  .modal input,.modal select,.modal textarea { background:rgba(255,255,255,0.07); border:1px solid rgba(200,146,42,0.3); color:#fff; width:100%; }
+  .modal input::placeholder,.modal textarea::placeholder { color:#777; }
+  .modal input:focus,.modal select:focus,.modal textarea:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(200,146,42,0.2); }
+  .modal select option { background:#2d0808; }
+  .settings-form .form-group label { color:var(--gold-light); }
+  .settings-form input,.settings-form textarea { background:rgba(255,255,255,0.07); border:1px solid rgba(200,146,42,0.25); color:#fff; width:100%; }
+  .settings-form input:focus,.settings-form textarea:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(200,146,42,0.2); }
+  .pwd-box { background:rgba(255,255,255,0.04); border:1px solid rgba(200,146,42,0.2); border-radius:10px; padding:24px; margin-bottom:20px; }
+  .pwd-box h3 { font-family:'Cinzel',serif; color:var(--gold-light); font-size:0.9rem; margin-bottom:16px; }
+  .reason-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .reason-chip {
+    padding:7px 14px; border-radius:20px; cursor:pointer;
+    font-family:'Cinzel',serif; font-size:0.72rem; letter-spacing:0.5px;
+    border:1px solid rgba(200,146,42,0.4); color:#c8a878;
+    background:rgba(255,255,255,0.05); transition:all 0.2s;
+  }
+  .reason-chip:hover,.reason-chip.selected { background:rgba(139,26,26,0.4); border-color:var(--crimson-light); color:#ffb0b0; }
+  @media(max-width:700px) {
+    .sidebar { width:60px; }
+    .sidebar-logo h2,.sidebar-logo p,.admin-info,.nav-item span,.sidebar-footer { display:none; }
+    .nav-item { justify-content:center; padding:14px; }
+    .page { padding:16px; }
+  }
+</style>
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div style="font-size:1.8rem;">🪔</div>
+      <h2>Temple Admin</h2>
+      <p>Management Panel</p>
+    </div>
+    <div class="admin-info">
+      <p>Logged in as:<br/><span id="admin-name">—</span></p>
+      <p style="margin-top:4px;color:#a08060;font-size:0.72rem;" id="admin-role">—</p>
+    </div>
+    <nav class="nav-menu">
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></div>
+      <div class="nav-item" onclick="showPage('bookings')"><span class="icon">📋</span><span>Bookings</span></div>
+      <div class="nav-item" onclick="showPage('announcements')"><span class="icon">🔔</span><span>Announcements</span></div>
+      <div class="nav-item" onclick="showPage('poojas')"><span class="icon">🌸</span><span>Manage Poojas</span></div>
+      <div class="nav-item" onclick="showPage('settings')"><span class="icon">⚙️</span><span>Temple Settings</span></div>
+      <div class="nav-item" onclick="showPage('password')"><span class="icon">🔑</span><span>Change Password</span></div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="index.html" target="_blank">🌐 View Public Site</a>
+      <a href="#" onclick="doLogout()">🚪 Logout</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <h1 id="page-title">📊 Dashboard</h1>
+      <div style="color:#c8a878;font-size:0.8rem;font-family:'Cinzel',serif;" id="topbar-date"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-row">
+        <div class="stat"><span class="n" id="s-total">0</span><p>Total Bookings</p></div>
+        <div class="stat"><span class="n" id="s-pending">0</span><p>Pending</p></div>
+        <div class="stat"><span class="n" id="s-confirmed">0</span><p>Confirmed</p></div>
+        <div class="stat"><span class="n" id="s-rejected">0</span><p>Rejected</p></div>
+        <div class="stat"><span class="n" id="s-poojas">0</span><p>Active Poojas</p></div>
+        <div class="stat"><span class="n" id="s-ann">0</span><p>Announcements</p></div>
+      </div>
+      <div class="section-hdr"><h2>🕐 Recent Bookings</h2><button class="btn btn-outline btn-sm" onclick="showPage('bookings')">View All</button></div>
+      <div class="dark-card"><div style="overflow-x:auto;"><table class="dark-table">
+        <thead><tr><th>Ref</th><th>Name</th><th>Pooja</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="dash-bookings-body"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div class="page" id="page-bookings">
+      <div class="section-hdr">
+        <h2>📋 All Bookings</h2>
+        <select id="filter-status" onchange="renderBookings()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(200,146,42,0.3);color:#e8d0a8;padding:6px 10px;border-radius:5px;font-family:'Cinzel',serif;font-size:0.72rem;">
+          <option value="">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="dark-card"><div style="overflow-x:auto;"><table class="dark-table">
+        <thead><tr><th>Ref</th><th>Name</th><th>Phone</th><th>Pooja</th><th>Date</th><th>Time</th><th>Status</th><th>Reason</th><th>Actions</th></tr></thead>
+        <tbody id="bookings-body"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div class="page" id="page-announcements">
+      <div class="section-hdr">
+        <h2>🔔 Announcements</h2>
+        <button class="btn btn-gold btn-sm" onclick="openAnnModal()">+ ADD NEW</button>
+      </div>
+      <div class="dark-card"><div style="overflow-x:auto;"><table class="dark-table">
+        <thead><tr><th>Title</th><th>Date</th><th>Body</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="ann-body"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- POOJAS -->
+    <div class="page" id="page-poojas">
+      <div class="section-hdr">
+        <h2>🌸 Manage Poojas</h2>
+        <button class="btn btn-gold btn-sm" onclick="openPoojaModal()">+ ADD POOJA</button>
+      </div>
+      <div class="dark-card"><div style="overflow-x:auto;"><table class="dark-table">
+        <thead><tr><th>Icon</th><th>Name</th><th>Price (₹)</th><th>Duration</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="poojas-body"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="section-hdr"><h2>⚙️ Temple Settings</h2></div>
+      <div class="dark-card" style="padding:28px;">
+        <div class="settings-form">
+          <div class="form-row">
+            <div class="form-group"><label>TEMPLE NAME</label><input type="text" id="st-name"/></div>
+            <div class="form-group"><label>TAGLINE</label><input type="text" id="st-tagline"/></div>
+          </div>
+          <div class="form-group"><label>ADDRESS</label><input type="text" id="st-address"/></div>
+          <div class="form-row">
+            <div class="form-group"><label>PHONE</label><input type="text" id="st-phone"/></div>
+            <div class="form-group"><label>EMAIL</label><input type="email" id="st-email"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>TIMINGS</label><input type="text" id="st-timings"/></div>
+            <div class="form-group"><label>DRESS CODE</label><input type="text" id="st-dresscode"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>UPI ID</label><input type="text" id="st-upi"/></div>
+            <div class="form-group"><label>WHATSAPP NUMBER</label><input type="text" id="st-whatsapp"/></div>
+          </div>
+          <div class="form-group"><label>ABOUT THE TEMPLE</label><textarea id="st-about" rows="5"></textarea></div>
+          <button class="btn btn-gold" onclick="saveSettings()">💾 SAVE ALL SETTINGS</button>
+          <p style="color:#888;font-size:0.8rem;margin-top:10px;font-style:italic;">Changes are saved instantly and reflected on the public website.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="page" id="page-password">
+      <div class="section-hdr"><h2>🔑 Change Password</h2></div>
+      <div id="pwd-cards"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-bg" id="reject-modal">
+  <div class="modal">
+    <h3>❌ Reject Booking</h3>
+    <input type="hidden" id="reject-booking-id"/>
+    <p style="color:#c8a878;font-size:0.88rem;margin-bottom:16px;">Select a reason for rejection. The devotee will see this on the booking status page.</p>
+    <p style="font-family:'Cinzel',serif;color:var(--gold-light);font-size:0.75rem;letter-spacing:1px;margin-bottom:10px;">QUICK REASONS:</p>
+    <div class="reason-chips" id="reason-chips">
+      <div class="reason-chip" onclick="selectChip(this)">📅 Please choose a different date</div>
+      <div class="reason-chip" onclick="selectChip(this)">🕐 Please choose a different time slot</div>
+      <div class="reason-chip" onclick="selectChip(this)">👥 Too many bookings on this date</div>
+      <div class="reason-chip" onclick="selectChip(this)">🛕 Temple closed on this day</div>
+      <div class="reason-chip" onclick="selectChip(this)">🔧 Maintenance work scheduled</div>
+      <div class="reason-chip" onclick="selectChip(this)">✍️ Write custom reason below</div>
+    </div>
+    <div class="form-group">
+      <label>CUSTOM REASON (optional)</label>
+      <textarea id="reject-custom" placeholder="Write your own reason here..." rows="3"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn btn-danger" onclick="confirmReject()">❌ CONFIRM REJECTION</button>
+      <button class="btn btn-outline" onclick="closeModal('reject-modal')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANNOUNCEMENT MODAL -->
+<div class="modal-bg" id="ann-modal">
+  <div class="modal">
+    <h3 id="ann-modal-title">➕ Add Announcement</h3>
+    <input type="hidden" id="ann-edit-id"/>
+    <div class="form-group"><label>TITLE</label><input type="text" id="ann-title" placeholder="Announcement title"/></div>
+    <div class="form-group"><label>DATE / PERIOD</label><input type="text" id="ann-date" placeholder="e.g. August 9, 2025 or Every Friday"/></div>
+    <div class="form-group"><label>DETAILS</label><textarea id="ann-body-inp" placeholder="Announcement details..." rows="4"></textarea></div>
+    <div class="form-group"><label>STATUS</label>
+      <select id="ann-active"><option value="true">Active (visible on site)</option><option value="false">Inactive (hidden)</option></select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-gold" onclick="saveAnn()">SAVE</button>
+      <button class="btn btn-outline" onclick="closeModal('ann-modal')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- POOJA MODAL -->
+<div class="modal-bg" id="pooja-modal">
+  <div class="modal">
+    <h3 id="pooja-modal-title">➕ Add Pooja Service</h3>
+    <input type="hidden" id="pooja-edit-id"/>
+    <div class="form-row">
+      <div class="form-group"><label>ICON (emoji)</label><input type="text" id="p-icon" placeholder="🌸"/></div>
+      <div class="form-group"><label>NAME</label><input type="text" id="p-name" placeholder="Pooja name"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>PRICE (₹)</label><input type="number" id="p-price" placeholder="501"/></div>
+      <div class="form-group"><label>DURATION</label><input type="text" id="p-duration" placeholder="1 Hour"/></div>
+    </div>
+    <div class="form-group"><label>DESCRIPTION</label><textarea id="p-desc" placeholder="Brief description..." rows="3"></textarea></div>
+    <div class="form-group"><label>STATUS</label>
+      <select id="p-active"><option value="true">Active (visible on site)</option><option value="false">Inactive (hidden)</option></select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-gold" onclick="savePooja()">SAVE</button>
+      <button class="btn btn-outline" onclick="closeModal('pooja-modal')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="data.js"></script>
+<script>
+  // Auth guard
+  const currentAdmin = TempleDB.getLoggedIn();
+  if(!currentAdmin) window.location.href = 'admin-login.html';
+  document.getElementById('admin-name').textContent = currentAdmin.name;
+  document.getElementById('admin-role').textContent = currentAdmin.role;
+  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // ── NAVIGATION ──
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+    const titles = {dashboard:'📊 Dashboard',bookings:'📋 Bookings',announcements:'🔔 Announcements',poojas:'🌸 Manage Poojas',settings:'⚙️ Temple Settings',password:'🔑 Change Password'};
+    document.getElementById('page-title').textContent = titles[id]||id;
+    const idx = ['dashboard','bookings','announcements','poojas','settings','password'].indexOf(id);
+    document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
+    if(id==='dashboard')     renderDashboard();
+    if(id==='bookings')      renderBookings();
+    if(id==='announcements') renderAnn();
+    if(id==='poojas')        renderPoojas();
+    if(id==='settings')      loadSettings();
+    if(id==='password')      renderPasswordPage();
+  }
+
+  function toast(msg, ok=true) {
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.className=ok?'show green':'show';
+    setTimeout(()=>t.className='',3500);
+  }
+
+  // ── DASHBOARD ──
+  function renderDashboard() {
+    const b=TempleDB.getBookings();
+    document.getElementById('s-total').textContent     = b.length;
+    document.getElementById('s-pending').textContent   = b.filter(x=>x.status==='Pending').length;
+    document.getElementById('s-confirmed').textContent = b.filter(x=>x.status==='Confirmed').length;
+    document.getElementById('s-rejected').textContent  = b.filter(x=>x.status==='Rejected').length;
+    document.getElementById('s-poojas').textContent    = TempleDB.getPoojas().filter(x=>x.active).length;
+    document.getElementById('s-ann').textContent       = TempleDB.getAnnouncements().filter(x=>x.active).length;
+    const recent = [...b].reverse().slice(0,6);
+    document.getElementById('dash-bookings-body').innerHTML = recent.length
+      ? recent.map(x=>`<tr>
+          <td style="color:var(--gold)">${x.bookingRef}</td>
+          <td>${x.name}</td>
+          <td>${x.pooja.split('–')[0].trim()}</td>
+          <td>${x.date}</td>
+          <td><span class="badge badge-${x.status.toLowerCase()}">${x.status}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="5" style="text-align:center;color:#666;padding:20px;">No bookings yet.</td></tr>';
+  }
+
+  // ── BOOKINGS ──
+  function renderBookings() {
+    const filter = document.getElementById('filter-status')?.value||'';
+    let b = [...TempleDB.getBookings()].reverse();
+    if(filter) b = b.filter(x=>x.status===filter);
+    document.getElementById('bookings-body').innerHTML = b.length
+      ? b.map(x=>`<tr>
+          <td style="color:var(--gold);white-space:nowrap;">${x.bookingRef}</td>
+          <td>${x.name}<br/><span style="font-size:0.78rem;color:#a08060;">${x.phone}</span></td>
+          <td>${x.phone}</td>
+          <td style="white-space:nowrap;">${x.pooja.split('–')[0].trim()}</td>
+          <td style="white-space:nowrap;">${x.date}</td>
+          <td style="white-space:nowrap;">${x.time}</td>
+          <td><span class="badge badge-${x.status.toLowerCase()}">${x.status}</span></td>
+          <td style="font-size:0.8rem;max-width:160px;color:#ffb0b0;">${x.reason||'—'}</td>
+          <td style="white-space:nowrap;">
+            ${x.status==='Pending'?`
+              <button class="btn btn-success btn-sm" onclick="approveBooking(${x.id})" style="margin-bottom:4px;">✅ Approve</button><br/>
+              <button class="btn btn-danger btn-sm"  onclick="openRejectModal(${x.id})">❌ Reject</button>`
+            : x.status==='Confirmed'?
+              `<button class="btn btn-danger btn-sm" onclick="openRejectModal(${x.id})">❌ Reject</button>`
+            : `<button class="btn btn-success btn-sm" onclick="approveBooking(${x.id})">✅ Approve</button>`}
+          </td>
+        </tr>`).join('')
+      : '<tr><td colspan="9" style="text-align:center;color:#666;padding:20px;">No bookings found.</td></tr>';
+  }
+
+  function approveBooking(id) {
+    TempleDB.updateBookingStatus(id, 'Confirmed', '');
+    renderBookings(); renderDashboard();
+    toast('✅ Booking confirmed! Devotee can see this on the status page.');
+  }
+
+  // ── REJECT MODAL ──
+  let selectedChipText = '';
+  function openRejectModal(id) {
+    document.getElementById('reject-booking-id').value = id;
+    document.getElementById('reject-custom').value = '';
+    document.querySelectorAll('.reason-chip').forEach(c=>c.classList.remove('selected'));
+    selectedChipText = '';
+    document.getElementById('reject-modal').classList.add('open');
+  }
+  function selectChip(el) {
+    document.querySelectorAll('.reason-chip').forEach(c=>c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedChipText = el.textContent.trim();
+    if(selectedChipText.includes('custom reason')) {
+      selectedChipText = '';
+      document.getElementById('reject-custom').focus();
+    }
+  }
+  function confirmReject() {
+    const id     = parseInt(document.getElementById('reject-booking-id').value);
+    const custom = document.getElementById('reject-custom').value.trim();
+    const reason = custom || selectedChipText;
+    if(!reason) { toast('⚠️ Please select or write a reason.', false); return; }
+    TempleDB.updateBookingStatus(id, 'Rejected', reason);
+    closeModal('reject-modal');
+    renderBookings(); renderDashboard();
+    toast('❌ Booking rejected. Reason saved for devotee.');
+  }
+
+  // ── ANNOUNCEMENTS ──
+  function renderAnn() {
+    const ann=TempleDB.getAnnouncements();
+    document.getElementById('ann-body').innerHTML = ann.length
+      ? ann.map((a,i)=>`<tr>
+          <td><strong style="color:var(--gold-light);">${a.title}</strong></td>
+          <td>${a.date}</td>
+          <td style="max-width:220px;font-size:0.85rem;">${a.body}</td>
+          <td><span class="badge ${a.active?'badge-active':'badge-inactive'}">${a.active?'Active':'Inactive'}</span></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-outline btn-sm" onclick="editAnn(${i})" style="margin-right:4px;">✏️</button>
+            <button class="btn btn-danger btn-sm"  onclick="deleteAnn(${i})">🗑️</button>
+          </td>
+        </tr>`).join('')
+      : '<tr><td colspan="5" style="text-align:center;color:#666;padding:20px;">No announcements.</td></tr>';
+  }
+  function openAnnModal(edit=false) {
+    if(!edit) {
+      document.getElementById('ann-modal-title').textContent='➕ Add Announcement';
+      document.getElementById('ann-edit-id').value='';
+      ['ann-title','ann-date','ann-body-inp'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('ann-active').value='true';
+    }
+    document.getElementById('ann-modal').classList.add('open');
+  }
+  function editAnn(i) {
+    const a=TempleDB.getAnnouncements()[i];
+    document.getElementById('ann-modal-title').textContent='✏️ Edit Announcement';
+    document.getElementById('ann-edit-id').value=i;
+    document.getElementById('ann-title').value=a.title;
+    document.getElementById('ann-date').value=a.date;
+    document.getElementById('ann-body-inp').value=a.body;
+    document.getElementById('ann-active').value=a.active?'true':'false';
+    openAnnModal(true);
+  }
+  function saveAnn() {
+    const title=document.getElementById('ann-title').value.trim();
+    const date =document.getElementById('ann-date').value.trim();
+    const body =document.getElementById('ann-body-inp').value.trim();
+    const active=document.getElementById('ann-active').value==='true';
+    if(!title||!date||!body){toast('Please fill all fields.',false);return;}
+    const ann=TempleDB.getAnnouncements();
+    const editId=document.getElementById('ann-edit-id').value;
+    if(editId!=='') ann[parseInt(editId)]={...ann[parseInt(editId)],title,date,body,active};
+    else ann.push({id:Date.now(),title,date,body,active});
+    TempleDB.saveAnnouncements(ann);
+    closeModal('ann-modal'); renderAnn();
+    toast('✅ Announcement saved!');
+  }
+  function deleteAnn(i) {
+    if(!confirm('Delete this announcement?')) return;
+    const ann=TempleDB.getAnnouncements(); ann.splice(i,1);
+    TempleDB.saveAnnouncements(ann); renderAnn();
+    toast('🗑️ Deleted.');
+  }
+
+  // ── POOJAS ──
+  function renderPoojas() {
+    const p=TempleDB.getPoojas();
+    document.getElementById('poojas-body').innerHTML = p.length
+      ? p.map((p,i)=>`<tr>
+          <td style="font-size:1.4rem;">${p.icon}</td>
+          <td><strong style="color:var(--gold-light);">${p.name}</strong></td>
+          <td>₹${p.price.toLocaleString()}</td>
+          <td>${p.duration}</td>
+          <td style="font-size:0.82rem;max-width:180px;">${p.desc}</td>
+          <td><span class="badge ${p.active?'badge-active':'badge-inactive'}">${p.active?'Active':'Inactive'}</span></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-outline btn-sm" onclick="editPooja(${i})" style="margin-right:4px;">✏️</button>
+            <button class="btn btn-danger btn-sm"  onclick="deletePooja(${i})">🗑️</button>
+          </td>
+        </tr>`).join('')
+      : '<tr><td colspan="7" style="text-align:center;color:#666;padding:20px;">No poojas.</td></tr>';
+  }
+  function openPoojaModal(edit=false) {
+    if(!edit) {
+      document.getElementById('pooja-modal-title').textContent='➕ Add Pooja Service';
+      document.getElementById('pooja-edit-id').value='';
+      ['p-icon','p-name','p-price','p-duration','p-desc'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('p-active').value='true';
+    }
+    document.getElementById('pooja-modal').classList.add('open');
+  }
+  function editPooja(i) {
+    const p=TempleDB.getPoojas()[i];
+    document.getElementById('pooja-modal-title').textContent='✏️ Edit Pooja';
+    document.getElementById('pooja-edit-id').value=i;
+    document.getElementById('p-icon').value=p.icon;
+    document.getElementById('p-name').value=p.name;
+    document.getElementById('p-price').value=p.price;
+    document.getElementById('p-duration').value=p.duration;
+    document.getElementById('p-desc').value=p.desc;
+    document.getElementById('p-active').value=p.active?'true':'false';
+    openPoojaModal(true);
+  }
+  function savePooja() {
+    const icon=document.getElementById('p-icon').value.trim()||'🌸';
+    const name=document.getElementById('p-name').value.trim();
+    const price=parseInt(document.getElementById('p-price').value)||0;
+    const duration=document.getElementById('p-duration').value.trim();
+    const desc=document.getElementById('p-desc').value.trim();
+    const active=document.getElementById('p-active').value==='true';
+    if(!name||!price||!duration){toast('Fill name, price and duration.',false);return;}
+    const poojas=TempleDB.getPoojas();
+    const editId=document.getElementById('pooja-edit-id').value;
+    if(editId!=='') poojas[parseInt(editId)]={...poojas[parseInt(editId)],icon,name,price,duration,desc,active};
+    else poojas.push({id:Date.now(),icon,name,price,duration,desc,active});
+    TempleDB.savePoojas(poojas);
+    closeModal('pooja-modal'); renderPoojas();
+    toast('✅ Pooja saved!');
+  }
+  function deletePooja(i) {
+    if(!confirm('Delete this pooja?')) return;
+    const p=TempleDB.getPoojas(); p.splice(i,1);
+    TempleDB.savePoojas(p); renderPoojas();
+    toast('🗑️ Deleted.');
+  }
+
+  // ── SETTINGS ──
+  function loadSettings() {
+    const s=TempleDB.getSettings();
+    document.getElementById('st-name').value=s.name;
+    document.getElementById('st-tagline').value=s.tagline;
+    document.getElementById('st-address').value=s.address;
+    document.getElementById('st-phone').value=s.phone;
+    document.getElementById('st-email').value=s.email;
+    document.getElementById('st-timings').value=s.timings;
+    document.getElementById('st-dresscode').value=s.dresscode;
+    document.getElementById('st-upi').value=s.upi;
+    document.getElementById('st-whatsapp').value=s.whatsapp;
+    document.getElementById('st-about').value=s.about;
+  }
+  function saveSettings() {
+    TempleDB.saveSettings({
+      name:document.getElementById('st-name').value.trim(),
+      tagline:document.getElementById('st-tagline').value.trim(),
+      address:document.getElementById('st-address').value.trim(),
+      phone:document.getElementById('st-phone').value.trim(),
+      email:document.getElementById('st-email').value.trim(),
+      timings:document.getElementById('st-timings').value.trim(),
+      dresscode:document.getElementById('st-dresscode').value.trim(),
+      upi:document.getElementById('st-upi').value.trim(),
+      whatsapp:document.getElementById('st-whatsapp').value.trim(),
+      about:document.getElementById('st-about').value.trim(),
+    });
+    toast('✅ Settings saved! Public site updated.');
+  }
+
+  // ── CHANGE PASSWORD ──
+  function renderPasswordPage() {
+    const admins = TempleDB.getAdmins();
+    document.getElementById('pwd-cards').innerHTML = admins.map(a=>`
+      <div class="pwd-box">
+        <h3>🔑 ${a.name} <span style="font-size:0.75rem;color:#a08060;">(${a.role})</span></h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>CURRENT PASSWORD</label>
+            <input type="password" id="old-${a.username}" placeholder="Current password" style="background:rgba(255,255,255,0.07);border:1px solid rgba(200,146,42,0.3);color:#fff;width:100%;"/>
+          </div>
+          <div class="form-group">
+            <label>NEW PASSWORD</label>
+            <input type="password" id="new-${a.username}" placeholder="New password (min 6 chars)" style="background:rgba(255,255,255,0.07);border:1px solid rgba(200,146,42,0.3);color:#fff;width:100%;"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>CONFIRM NEW PASSWORD</label>
+          <input type="password" id="con-${a.username}" placeholder="Confirm new password" style="background:rgba(255,255,255,0.07);border:1px solid rgba(200,146,42,0.3);color:#fff;width:100%;max-width:320px;"/>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="changePassword('${a.username}')">🔐 UPDATE PASSWORD</button>
+      </div>`).join('');
+  }
+
+  function changePassword(username) {
+    const oldP = document.getElementById('old-'+username).value;
+    const newP = document.getElementById('new-'+username).value;
+    const conP = document.getElementById('con-'+username).value;
+    if(!oldP||!newP||!conP)      { toast('⚠️ Please fill all password fields.', false); return; }
+    if(newP.length < 6)          { toast('⚠️ New password must be at least 6 characters.', false); return; }
+    if(newP !== conP)             { toast('⚠️ New passwords do not match.', false); return; }
+    const ok = TempleDB.changePassword(username, oldP, newP);
+    if(ok) {
+      toast('✅ Password updated successfully!');
+      document.getElementById('old-'+username).value='';
+      document.getElementById('new-'+username).value='';
+      document.getElementById('con-'+username).value='';
+    } else {
+      toast('❌ Current password is incorrect.', false);
+    }
+  }
+
+  // ── MODAL HELPERS ──
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-bg').forEach(m=>{
+    m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+  });
+
+  function doLogout() { TempleDB.logout(); window.location.href='admin-login.html'; }
+
+  renderDashboard();
+</script>
+</body>
+</html>
